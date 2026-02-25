@@ -690,6 +690,160 @@
   <div class="legend-item"><div class="legend-swatch" style="background:#39d3c5;"></div>Output</div>
 </div>
 
+<!-- ============================== TIMING DIAGRAM ============================== -->
+<div class="timing-section">
+  <h2>Asynchronous Timing Diagram</h2>
+  <p class="desc">
+    The VLM backbone runs a full forward pass at low frequency (~1-2 Hz) on the <strong style="color:#58a6ff;">Remote Workstation</strong> (single-threaded Python process, GPU via CUDA stream).
+    The Edge Adapter reuses cached VLA features and runs at the robot's control rate (~3 Hz+) on the <strong style="color:#3fb950;">Robot Edge Controller</strong> (separate process).
+    Features are transferred asynchronously via <strong style="color:#e3b341;">ROS1 topics</strong>.
+  </p>
+
+  <div class="timing-chart">
+    <table>
+      <!-- Header row: time ticks -->
+      <tr>
+        <th></th>
+        <td colspan="12" style="position:relative; height:24px;">
+          <div style="display:flex; font-size:.65rem; color:#484f58; padding-left:2px;">
+            <span style="flex:1;">t=0</span>
+            <span style="flex:1;">t=1</span>
+            <span style="flex:1;">t=2</span>
+            <span style="flex:1;">t=3</span>
+            <span style="flex:1;">t=4</span>
+            <span style="flex:1;">t=5</span>
+            <span style="flex:1;">t=6</span>
+            <span style="flex:1;">t=7</span>
+            <span style="flex:1;">t=8</span>
+            <span style="flex:1;">t=9</span>
+            <span style="flex:1;">t=10</span>
+            <span style="flex:1;">t=11</span>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Remote Workstation label -->
+      <tr>
+        <th style="color:#58a6ff; font-size:.65rem; letter-spacing:1px;">REMOTE WORKSTATION</th>
+        <td colspan="12" style="height:20px;"><div style="border-top:1px solid rgba(56,139,253,0.2);margin-top:10px;"></div></td>
+      </tr>
+
+      <!-- Process info row -->
+      <tr>
+        <th style="font-size:.58rem; color:#58a6ff; font-weight:400; font-style:italic;">Process: Main Thread &middot; cuda:0</th>
+        <td colspan="12" style="height:4px;"></td>
+      </tr>
+
+      <!-- Vision Backbone -->
+      <tr>
+        <th>Vision Backbone</th>
+        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- Projector -->
+      <tr>
+        <th>Projector + Proprio</th>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- LLM -->
+      <tr>
+        <th>LLM (Llama-2 7B)</th>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- Action Token Extraction -->
+      <tr>
+        <th>Token Extract + Proj</th>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
+      </tr>
+
+      <!-- ROS Publish row -->
+      <tr>
+        <th style="font-size:.62rem; color:#e3b341;">ROS1 Publish</th>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#9e6a03,#e3b341); font-size:.58rem;">pub</div></td>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#9e6a03,#e3b341); font-size:.58rem;">pub</div></td>
+      </tr>
+
+      <!-- Separator -->
+      <tr><td colspan="13" style="height:6px;"></td></tr>
+      <tr>
+        <td colspan="13" style="height:2px; position:relative;">
+          <div style="border-top:2px dashed rgba(227,179,65,0.35); width:100%; position:absolute; top:0;"></div>
+          <div style="text-align:center; font-size:.68rem; color:#e3b341; position:relative; top:-8px; font-weight:700;">
+            &#9889; Network Boundary &mdash; ROS1 Topic (projected_actions [B, 8, 1024]) &mdash; Async Handoff
+          </div>
+        </td>
+      </tr>
+
+      <!-- Robot Edge label -->
+      <tr>
+        <th style="color:#3fb950; font-size:.65rem; letter-spacing:1px;">ROBOT EDGE CONTROLLER</th>
+        <td colspan="12" style="height:4px;"></td>
+      </tr>
+
+      <!-- Process info row -->
+      <tr>
+        <th style="font-size:.58rem; color:#3fb950; font-weight:400; font-style:italic;">Process: Main Thread + ROS Spinner</th>
+        <td colspan="12" style="height:4px;"></td>
+      </tr>
+
+      <!-- ROS Subscriber row -->
+      <tr>
+        <th style="font-size:.62rem; color:#e3b341;">ROS1 Subscriber</th>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#9e6a03,#e3b341); font-size:.58rem;">sub (callback)</div></td>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#9e6a03,#e3b341); font-size:.58rem;">sub</div></td>
+      </tr>
+
+      <!-- Edge Adapter -->
+      <tr>
+        <th style="color:#3fb950;">Edge Adapter</th>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #1 (old feat)</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #2 (old feat)</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #3 (new feat)</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #4 (new feat)</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #5 (new feat)</div></td>
+      </tr>
+
+      <!-- Robot Control -->
+      <tr>
+        <th style="color:#39d3c5;">Robot Control</th>
+        <td colspan="3"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
 <!-- ============================== PIPELINE ============================== -->
 <div class="canvas">
 <div class="pipeline">
@@ -886,130 +1040,6 @@
 
 </div><!-- /pipeline -->
 </div><!-- /canvas -->
-
-<!-- ============================== TIMING DIAGRAM ============================== -->
-<div class="timing-section">
-  <h2>Asynchronous Timing Diagram</h2>
-  <p class="desc">
-    The VLM backbone runs a full forward pass at low frequency (~1-2 Hz).
-    The Edge Adapter reuses cached VLA features and runs at the robot's control rate (~3 Hz+),
-    incorporating the latest camera observations for reactive action prediction.
-  </p>
-
-  <div class="timing-chart">
-    <table>
-      <!-- Header row: time ticks -->
-      <tr>
-        <th></th>
-        <td colspan="12" style="position:relative; height:24px;">
-          <div style="display:flex; font-size:.65rem; color:#484f58; padding-left:2px;">
-            <span style="flex:1;">t=0</span>
-            <span style="flex:1;">t=1</span>
-            <span style="flex:1;">t=2</span>
-            <span style="flex:1;">t=3</span>
-            <span style="flex:1;">t=4</span>
-            <span style="flex:1;">t=5</span>
-            <span style="flex:1;">t=6</span>
-            <span style="flex:1;">t=7</span>
-            <span style="flex:1;">t=8</span>
-            <span style="flex:1;">t=9</span>
-            <span style="flex:1;">t=10</span>
-            <span style="flex:1;">t=11</span>
-          </div>
-        </td>
-      </tr>
-
-      <!-- Remote Workstation label -->
-      <tr>
-        <th style="color:#58a6ff; font-size:.65rem; letter-spacing:1px;">REMOTE WORKSTATION</th>
-        <td colspan="12" style="height:20px;"><div style="border-top:1px solid rgba(56,139,253,0.2);margin-top:10px;"></div></td>
-      </tr>
-
-      <!-- Vision Backbone -->
-      <tr>
-        <th>Vision Backbone</th>
-        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
-        <td colspan="4"><div class="t-bar t-idle"></div></td>
-        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
-        <td colspan="4"><div class="t-bar t-idle"></div></td>
-      </tr>
-
-      <!-- Projector -->
-      <tr>
-        <th>Projector + Proprio</th>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
-        <td colspan="4"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
-        <td colspan="4"><div class="t-bar t-idle"></div></td>
-      </tr>
-
-      <!-- LLM -->
-      <tr>
-        <th>LLM (Llama-2 7B)</th>
-        <td colspan="2"><div class="t-bar t-idle"></div></td>
-        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="2"><div class="t-bar t-idle"></div></td>
-        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-      </tr>
-
-      <!-- Action Token Extraction -->
-      <tr>
-        <th>Token Extract + Proj</th>
-        <td colspan="5"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
-        <td colspan="5"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
-      </tr>
-
-      <!-- Separator -->
-      <tr><td colspan="13" style="height:6px;"></td></tr>
-      <tr>
-        <td colspan="13" style="height:2px; position:relative;">
-          <div style="border-top:2px dashed rgba(227,179,65,0.35); width:100%; position:absolute; top:0;"></div>
-          <div style="text-align:center; font-size:.68rem; color:#e3b341; position:relative; top:-8px; font-weight:700;">
-            &#9889; Async Boundary &mdash; cached features
-          </div>
-        </td>
-      </tr>
-
-      <!-- Robot Edge label -->
-      <tr>
-        <th style="color:#3fb950; font-size:.65rem; letter-spacing:1px;">ROBOT EDGE CONTROLLER</th>
-        <td colspan="12" style="height:4px;"></td>
-      </tr>
-
-      <!-- Edge Adapter -->
-      <tr>
-        <th style="color:#3fb950;">Edge Adapter</th>
-        <td colspan="2"><div class="t-bar t-idle"></div></td>
-        <td colspan="2"><div class="t-bar t-edge">EA #1</div></td>
-        <td colspan="2"><div class="t-bar t-edge">EA #2</div></td>
-        <td colspan="2"><div class="t-bar t-edge">EA #3</div></td>
-        <td colspan="2"><div class="t-bar t-edge">EA #4</div></td>
-        <td colspan="2"><div class="t-bar t-edge">EA #5</div></td>
-      </tr>
-
-      <!-- Robot Control -->
-      <tr>
-        <th style="color:#39d3c5;">Robot Control</th>
-        <td colspan="3"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
-        <td colspan="1"><div class="t-bar t-idle"></div></td>
-        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
-      </tr>
-    </table>
-  </div>
-</div>
 
 <!-- ============================== DEPLOYMENT TOPOLOGY ============================== -->
 <div class="topology-section">
