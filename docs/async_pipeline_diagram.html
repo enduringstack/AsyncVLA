@@ -392,12 +392,279 @@
     color: #d2a8ff;
   }
 
+  /* ===== Process/Thread badge ===== */
+  .proc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 5px;
+    width: fit-content;
+  }
+  .proc-badge.remote {
+    background: rgba(56,139,253,0.18);
+    color: #58a6ff;
+    border: 1px solid rgba(56,139,253,0.3);
+  }
+  .proc-badge.edge {
+    background: rgba(63,185,80,0.18);
+    color: #3fb950;
+    border: 1px solid rgba(63,185,80,0.3);
+  }
+  .proc-badge.ros {
+    background: rgba(227,179,65,0.18);
+    color: #e3b341;
+    border: 1px solid rgba(227,179,65,0.3);
+  }
+  .proc-badge.ddp {
+    background: rgba(248,81,73,0.18);
+    color: #ff7b72;
+    border: 1px solid rgba(248,81,73,0.3);
+  }
+  .proc-badge.worker {
+    background: rgba(188,140,255,0.18);
+    color: #d2a8ff;
+    border: 1px solid rgba(188,140,255,0.3);
+  }
+
+  /* ===== Deployment Topology ===== */
+  .topology-section {
+    max-width: 1200px;
+    margin: 0 auto 50px;
+    padding: 0 30px;
+  }
+  .topology-section h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #58a6ff, #e3b341);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .topology-section .desc {
+    text-align: center;
+    font-size: .85rem;
+    color: #8b949e;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .topology-diagram {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-height: 340px;
+  }
+  .topo-machine {
+    flex: 1;
+    border-radius: 14px;
+    padding: 22px 20px;
+    position: relative;
+  }
+  .topo-machine.remote-ws {
+    background: linear-gradient(135deg, rgba(31,111,200,0.10), rgba(31,111,200,0.03));
+    border: 1px solid rgba(56,139,253,0.25);
+    border-right: none;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  .topo-machine.robot-edge {
+    background: linear-gradient(135deg, rgba(63,185,80,0.10), rgba(63,185,80,0.03));
+    border: 1px solid rgba(63,185,80,0.25);
+    border-left: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+  .topo-machine h3 {
+    font-size: .88rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .topo-machine.remote-ws h3 { color: #58a6ff; }
+  .topo-machine.robot-edge h3 { color: #3fb950; }
+
+  .topo-process {
+    background: rgba(0,0,0,.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .topo-process .tp-title {
+    font-size: .76rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .topo-process .tp-detail {
+    font-size: .68rem;
+    color: #8b949e;
+    line-height: 1.4;
+  }
+  .topo-process code {
+    font-size: .65rem;
+    background: rgba(110,64,201,0.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #d2a8ff;
+  }
+
+  .topo-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .topo-bridge .bridge-line {
+    width: 2px;
+    flex: 1;
+    background: repeating-linear-gradient(180deg, rgba(227,179,65,0.5) 0px, rgba(227,179,65,0.5) 6px, transparent 6px, transparent 12px);
+  }
+  .topo-bridge .bridge-label {
+    font-size: .65rem;
+    font-weight: 700;
+    color: #e3b341;
+    text-align: center;
+    padding: 6px 4px;
+    writing-mode: vertical-rl;
+    letter-spacing: 1px;
+  }
+  .topo-bridge-horiz {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+  }
+  .topo-bridge-horiz .hline {
+    height: 2px;
+    flex: 1;
+    background: repeating-linear-gradient(90deg, rgba(227,179,65,0.5) 0px, rgba(227,179,65,0.5) 6px, transparent 6px, transparent 12px);
+  }
+  .topo-bridge-horiz .hlabel {
+    font-size: .62rem;
+    font-weight: 700;
+    color: #e3b341;
+    white-space: nowrap;
+  }
+
+  /* ===== Training Process Diagram ===== */
+  .training-section {
+    max-width: 1200px;
+    margin: 0 auto 50px;
+    padding: 0 30px;
+  }
+  .training-section h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #ff7b72, #d2a8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .training-section .desc {
+    text-align: center;
+    font-size: .85rem;
+    color: #8b949e;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .training-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .gpu-card {
+    flex: 1;
+    min-width: 180px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+  }
+  .gpu-card h4 {
+    font-size: .78rem;
+    font-weight: 700;
+    color: #ff7b72;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .gpu-card .gpu-module {
+    font-size: .68rem;
+    padding: 5px 8px;
+    border-radius: 5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .gpu-card .gpu-module .mod-name {
+    font-weight: 600;
+  }
+  .gpu-card .gpu-module.vla-mod {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.2);
+    color: #ff7b72;
+  }
+  .gpu-card .gpu-module.head-mod {
+    background: rgba(63,185,80,0.1);
+    border: 1px solid rgba(63,185,80,0.2);
+    color: #3fb950;
+  }
+  .gpu-card .gpu-module.proj-mod {
+    background: rgba(210,153,34,0.1);
+    border: 1px solid rgba(210,153,34,0.2);
+    color: #e3b341;
+  }
+  .gpu-card .gpu-module.data-mod {
+    background: rgba(188,140,255,0.1);
+    border: 1px solid rgba(188,140,255,0.2);
+    color: #d2a8ff;
+  }
+  .gpu-sync {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0;
+    gap: 10px;
+  }
+  .gpu-sync .sync-line {
+    height: 2px;
+    flex: 1;
+    background: repeating-linear-gradient(90deg, rgba(248,81,73,0.4) 0px, rgba(248,81,73,0.4) 6px, transparent 6px, transparent 12px);
+  }
+  .gpu-sync .sync-label {
+    font-size: .65rem;
+    font-weight: 700;
+    color: #ff7b72;
+    white-space: nowrap;
+    padding: 3px 10px;
+    background: rgba(248,81,73,0.08);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 5px;
+  }
+
   /* ===== Responsive ===== */
   @media (max-width: 768px) {
     .stage-row { flex-direction: column; }
     .header h1 { font-size: 1.5rem; }
     .box { min-height: auto; }
     .timing-chart th { width: 120px; font-size: .7rem; }
+    .topology-diagram { flex-direction: column; }
+    .topo-machine { border-radius: 14px !important; border: 1px solid rgba(255,255,255,.1) !important; }
+    .topo-bridge { flex-direction: row; width: auto; height: 60px; }
+    .topo-bridge .bridge-label { writing-mode: horizontal-tb; }
+    .training-grid { flex-direction: column; }
   }
 </style>
 </head>
@@ -429,7 +696,7 @@
 
   <!-- ============== SLOW BRANCH ============== -->
   <div class="freq-band slow">
-    <span class="freq-label slow">&#9201; Slow Branch &mdash; VLM Backbone (low freq, ~1-2 Hz)</span>
+    <span class="freq-label slow">&#9201; Slow Branch &mdash; VLM Backbone (low freq, ~1-2 Hz) &mdash; Remote Workstation Process</span>
 
     <!-- Row 1: Inputs -->
     <div class="stage-row">
@@ -469,6 +736,7 @@
           Both images (current + goal) processed; patches concatenated.
         </div>
         <div class="dim">patch_features &nbsp;[B, 256&times;num_images, embed_dim]</div>
+        <div class="proc-badge remote">Main Thread &middot; GPU (Remote)</div>
       </div>
       <div class="box proj" style="flex:1;">
         <div class="title">&#128260; Proprio Projector</div>
@@ -509,6 +777,7 @@
           Action token embeddings zeroed before input (positions learned via attention).
         </div>
         <div class="dim">hidden_states[-1] &nbsp;[B, seq_len, 4096]</div>
+        <div class="proc-badge remote">Main Thread &middot; GPU (Remote) &middot; ~500-1000 ms</div>
       </div>
     </div>
 
@@ -541,13 +810,13 @@
 
   <!-- ============== ASYNC BRIDGE ============== -->
   <div class="async-bridge">
-    <span class="label">&#9889; ASYNCHRONOUS HANDOFF</span>
-    <span class="note">VLA features cached &amp; reused across multiple Edge Adapter cycles</span>
+    <span class="label">&#9889; ASYNCHRONOUS HANDOFF via ROS1 Topics</span>
+    <span class="note">VLA features published on remote workstation, subscribed on robot edge controller. Cached &amp; reused across multiple Edge Adapter cycles.</span>
   </div>
 
   <!-- ============== FAST BRANCH ============== -->
   <div class="freq-band fast">
-    <span class="freq-label fast">&#9889; Fast Branch &mdash; Edge Adapter (high freq, ~3 Hz+)</span>
+    <span class="freq-label fast">&#9889; Fast Branch &mdash; Edge Adapter (high freq, ~3 Hz+) &mdash; Robot Edge Process</span>
 
     <!-- Row 6: Edge Adapter Inputs -->
     <div class="stage-row">
@@ -585,6 +854,7 @@
           MLP action predictor &rarr; delta actions [B, 8, 4].
         </div>
         <div class="dim">tokens &nbsp;[B, 10, 512] &rarr; predicted_dactions &nbsp;[B, 8, 4]</div>
+        <div class="proc-badge edge">Main Thread &middot; Edge GPU/CPU (Robot) &middot; ~50-85 ms</div>
       </div>
     </div>
 
@@ -649,6 +919,12 @@
         </td>
       </tr>
 
+      <!-- Remote Workstation label -->
+      <tr>
+        <th style="color:#58a6ff; font-size:.65rem; letter-spacing:1px;">REMOTE WORKSTATION</th>
+        <td colspan="12" style="height:20px;"><div style="border-top:1px solid rgba(56,139,253,0.2);margin-top:10px;"></div></td>
+      </tr>
+
       <!-- Vision Backbone -->
       <tr>
         <th>Vision Backbone</th>
@@ -700,6 +976,12 @@
         </td>
       </tr>
 
+      <!-- Robot Edge label -->
+      <tr>
+        <th style="color:#3fb950; font-size:.65rem; letter-spacing:1px;">ROBOT EDGE CONTROLLER</th>
+        <td colspan="12" style="height:4px;"></td>
+      </tr>
+
       <!-- Edge Adapter -->
       <tr>
         <th style="color:#3fb950;">Edge Adapter</th>
@@ -726,6 +1008,201 @@
         <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
       </tr>
     </table>
+  </div>
+</div>
+
+<!-- ============================== DEPLOYMENT TOPOLOGY ============================== -->
+<div class="topology-section">
+  <h2>Deployment Topology &mdash; Process &amp; Thread Model</h2>
+  <p class="desc">
+    In real robot deployment, AsyncVLA is split across <strong>two physical machines</strong> communicating via <strong>ROS1 topics</strong>.
+    The VLM backbone runs on a remote GPU workstation as a single-threaded Python process;
+    the Edge Adapter runs on the robot's onboard controller as a separate process.
+    The "async" in AsyncVLA refers to this <strong>architectural</strong> decoupling &mdash; not Python-level async/threading.
+    In the codebase's single-machine inference mode (<code>run_asyncvla.py</code>), both run sequentially in one thread.
+  </p>
+
+  <div class="topology-diagram">
+    <!-- Remote Workstation -->
+    <div class="topo-machine remote-ws">
+      <h3>Remote Workstation (H100/H200 GPU)</h3>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#58a6ff;">Python Process &mdash; Main Thread (single-threaded)</div>
+        <div class="tp-detail">
+          Launched via <code>python inference/run_asyncvla.py</code>.
+          Runs the full VLM forward pass sequentially:
+          Vision Backbone &rarr; Projector &rarr; LLM &rarr; Action Token Extraction &rarr; Proj_Actiontokens.
+          <strong>No threading or multiprocessing used.</strong>
+          GPU operations dispatched from main thread via PyTorch CUDA calls.
+        </div>
+      </div>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#d2a8ff;">CUDA Stream (implicit)</div>
+        <div class="tp-detail">
+          PyTorch default CUDA stream handles GPU kernel dispatch.
+          All ops (<code>torch.no_grad()</code> + <code>torch.autocast("cuda", dtype=bfloat16)</code>)
+          execute on <code>cuda:0</code>. No explicit multi-stream parallelism.
+        </div>
+      </div>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#e3b341;">ROS1 Publisher (in deployment)</div>
+        <div class="tp-detail">
+          Publishes <code>projected_actions [B, 8, 1024]</code> features to a ROS topic.
+          The Edge Adapter on the robot subscribes to this topic asynchronously.
+          (Not implemented in the open-source codebase; see paper appendix.)
+        </div>
+      </div>
+    </div>
+
+    <!-- Bridge -->
+    <div class="topo-bridge">
+      <div class="bridge-line"></div>
+      <div class="bridge-label">ROS1 TOPIC</div>
+      <div class="bridge-line"></div>
+    </div>
+
+    <!-- Robot Edge -->
+    <div class="topo-machine robot-edge">
+      <h3>Robot Edge Controller</h3>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#3fb950;">Python Process &mdash; Main Thread (single-threaded)</div>
+        <div class="tp-detail">
+          Runs the Edge Adapter loop at <code>3 Hz</code> (tick_rate).
+          Each tick: read camera &rarr; run <code>shead(img_cur, img_past, projected_actions)</code>
+          &rarr; <code>delta_to_pose()</code> &rarr; PD controller &rarr; publish (v, &omega;) commands.
+          Uses the <strong>most recently cached VLA features</strong> from the ROS subscriber.
+        </div>
+      </div>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#e3b341;">ROS1 Subscriber (callback)</div>
+        <div class="tp-detail">
+          ROS subscriber callback receives <code>projected_actions</code> from the remote workstation.
+          Updates cached features in memory &mdash; the only point of inter-process data sharing.
+          ROS internally uses a <strong>spinner thread</strong> to handle callbacks.
+        </div>
+      </div>
+
+      <div class="topo-process">
+        <div class="tp-title" style="color:#39d3c5;">Robot Hardware Interface</div>
+        <div class="tp-detail">
+          Sends velocity commands <code>(v, &omega;)</code> to robot actuators.
+          Reads camera frames and GPS/compass data for the next cycle.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Single-machine note -->
+  <div style="margin-top: 18px; padding: 14px 20px; background: rgba(227,179,65,0.06); border: 1px solid rgba(227,179,65,0.2); border-radius: 10px;">
+    <div style="font-size:.76rem; font-weight:700; color:#e3b341; margin-bottom:4px;">
+      Single-Machine Mode (run_asyncvla.py)
+    </div>
+    <div style="font-size:.72rem; color:#8b949e; line-height:1.5;">
+      In the open-source codebase, both VLM and Edge Adapter run <strong>sequentially in one process, one thread</strong>
+      on a single GPU. The inference loop calls <code>vla()</code> then <code>shead()</code> back-to-back.
+      No ROS, no threading, no multiprocessing. This is a simplified offline evaluation mode.
+      The async split across two machines uses ROS1 and is described in the paper appendix.
+    </div>
+  </div>
+</div>
+
+<!-- ============================== TRAINING PROCESS MODEL ============================== -->
+<div class="training-section">
+  <h2>Training &mdash; Multi-GPU Process Model (DDP)</h2>
+  <p class="desc">
+    Training uses <code>torchrun</code> to spawn one process per GPU via PyTorch DistributedDataParallel (DDP).
+    Each process runs an identical copy of the model on its assigned GPU.
+    Gradients are synchronized automatically across processes during backward pass.
+    Data is split across ranks via <code>DistributedSampler</code>.
+  </p>
+
+  <!-- GPU Cards -->
+  <div class="training-grid">
+    <div class="gpu-card">
+      <h4>GPU 0 &mdash; Process rank=0</h4>
+      <div class="gpu-module vla-mod"><span class="mod-name">VLA (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Pose Projector (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Action Proj (DDP)</span></div>
+      <div class="gpu-module head-mod"><span class="mod-name">Edge Adapter (DDP)</span></div>
+      <div class="gpu-module data-mod"><span class="mod-name">DataLoader (8 workers)</span></div>
+    </div>
+    <div class="gpu-card">
+      <h4>GPU 1 &mdash; Process rank=1</h4>
+      <div class="gpu-module vla-mod"><span class="mod-name">VLA (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Pose Projector (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Action Proj (DDP)</span></div>
+      <div class="gpu-module head-mod"><span class="mod-name">Edge Adapter (DDP)</span></div>
+      <div class="gpu-module data-mod"><span class="mod-name">DataLoader (8 workers)</span></div>
+    </div>
+    <div class="gpu-card">
+      <h4>GPU 2 &mdash; Process rank=2</h4>
+      <div class="gpu-module vla-mod"><span class="mod-name">VLA (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Pose Projector (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Action Proj (DDP)</span></div>
+      <div class="gpu-module head-mod"><span class="mod-name">Edge Adapter (DDP)</span></div>
+      <div class="gpu-module data-mod"><span class="mod-name">DataLoader (8 workers)</span></div>
+    </div>
+    <div class="gpu-card">
+      <h4>GPU 3 &mdash; Process rank=3</h4>
+      <div class="gpu-module vla-mod"><span class="mod-name">VLA (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Pose Projector (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Action Proj (DDP)</span></div>
+      <div class="gpu-module head-mod"><span class="mod-name">Edge Adapter (DDP)</span></div>
+      <div class="gpu-module data-mod"><span class="mod-name">DataLoader (8 workers)</span></div>
+    </div>
+    <div class="gpu-card">
+      <h4>GPU 4 &mdash; Process rank=4</h4>
+      <div class="gpu-module vla-mod"><span class="mod-name">VLA (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Pose Projector (DDP)</span></div>
+      <div class="gpu-module proj-mod"><span class="mod-name">Action Proj (DDP)</span></div>
+      <div class="gpu-module head-mod"><span class="mod-name">Edge Adapter (DDP)</span></div>
+      <div class="gpu-module data-mod"><span class="mod-name">DataLoader (8 workers)</span></div>
+    </div>
+  </div>
+
+  <!-- Sync arrows -->
+  <div class="gpu-sync">
+    <div class="sync-line"></div>
+    <div class="sync-label">AllReduce Gradient Sync (automatic via DDP) + dist.barrier() at checkpoints</div>
+    <div class="sync-line"></div>
+  </div>
+
+  <!-- Training thread detail -->
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+    <div class="detail-card">
+      <h3 style="color:#ff7b72;">Per-GPU Process (torchrun)</h3>
+      <p>
+        Launched via <code>torchrun --nproc-per-node 5</code>.
+        Each GPU runs a full Python process. Training loop:
+        forward pass &rarr; loss computation &rarr; <code>loss.backward()</code> &rarr;
+        <code>optimizer.step()</code>. Gradient accumulation over 2 steps.
+        Uses <code>torch.autocast("cuda", dtype=bfloat16)</code> for mixed precision.
+      </p>
+    </div>
+    <div class="detail-card">
+      <h3 style="color:#d2a8ff;">DataLoader Workers (8 per process)</h3>
+      <p>
+        Each process spawns <strong>8 worker subprocesses</strong> (<code>num_workers=8</code>,
+        <code>persistent_workers=True</code>) for data prefetching.
+        Workers load images from disk, apply transforms, tokenize text, and fill
+        a prefetch queue. The main thread consumes batches from this queue.
+        Total: <strong>5 GPUs &times; 8 workers = 40 data-loading subprocesses</strong>.
+      </p>
+    </div>
+    <div class="detail-card">
+      <h3 style="color:#e3b341;">Synchronization Points</h3>
+      <p>
+        <code>dist.barrier()</code> called at: checkpoint directory creation,
+        model weight saving, LoRA weight merging, and model file syncing.
+        <code>DistributedSampler</code> ensures each GPU processes different data.
+        <code>WeightedDistributedSampler</code> balances dataset sampling weights.
+      </p>
+    </div>
   </div>
 </div>
 
