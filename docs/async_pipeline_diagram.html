@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AsyncVLA – Asynchronous Execution Pipeline</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    text-align: center;
+    padding: 40px 20px 10px;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: .5px;
+  }
+  .header p {
+    margin-top: 8px;
+    font-size: .95rem;
+    color: #8b949e;
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
+  }
+
+  /* ===== Legend ===== */
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 24px auto 10px;
+    padding: 0 20px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .82rem;
+    color: #8b949e;
+  }
+  .legend-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ===== Canvas ===== */
+  .canvas {
+    position: relative;
+    max-width: 1200px;
+    margin: 20px auto 60px;
+    padding: 0 30px;
+  }
+
+  /* ===== Pipeline Container ===== */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  /* ===== Frequency bands ===== */
+  .freq-band {
+    position: relative;
+    padding: 28px 20px 28px 20px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+  .freq-band.slow {
+    background: linear-gradient(135deg, rgba(31,111,200,0.08), rgba(31,111,200,0.03));
+    border: 1px solid rgba(56,139,253,0.18);
+  }
+  .freq-band.fast {
+    background: linear-gradient(135deg, rgba(63,185,80,0.08), rgba(63,185,80,0.03));
+    border: 1px solid rgba(63,185,80,0.18);
+  }
+  .freq-label {
+    position: absolute;
+    top: -13px;
+    left: 24px;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    padding: 3px 12px;
+    border-radius: 6px;
+  }
+  .freq-label.slow {
+    background: #1a3a5c;
+    color: #58a6ff;
+    border: 1px solid rgba(56,139,253,0.35);
+  }
+  .freq-label.fast {
+    background: #1a3c26;
+    color: #3fb950;
+    border: 1px solid rgba(63,185,80,0.35);
+  }
+
+  /* ===== Stage Rows ===== */
+  .stage-row {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .stage-row:last-child { margin-bottom: 0; }
+
+  /* ===== Boxes ===== */
+  .box {
+    position: relative;
+    border-radius: 10px;
+    padding: 14px 16px;
+    flex: 1;
+    min-height: 68px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  }
+  .box .title {
+    font-size: .82rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .box .subtitle {
+    font-size: .7rem;
+    color: #8b949e;
+    line-height: 1.35;
+  }
+  .box .dim {
+    font-size: .65rem;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    color: #7d8590;
+    margin-top: 4px;
+    background: rgba(0,0,0,.25);
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  /* colour themes */
+  .box.input {
+    background: linear-gradient(135deg, #1c2d40, #1a2332);
+    border: 1px solid rgba(56,139,253,0.25);
+  }
+  .box.input .title { color: #79c0ff; }
+
+  .box.vision {
+    background: linear-gradient(135deg, #2a1f3d, #1e1830);
+    border: 1px solid rgba(188,140,255,0.25);
+  }
+  .box.vision .title { color: #d2a8ff; }
+
+  .box.proj {
+    background: linear-gradient(135deg, #2d2a1a, #241f14);
+    border: 1px solid rgba(210,153,34,0.3);
+  }
+  .box.proj .title { color: #e3b341; }
+
+  .box.llm {
+    background: linear-gradient(135deg, #2d1a1a, #261414);
+    border: 1px solid rgba(248,81,73,0.25);
+  }
+  .box.llm .title { color: #ff7b72; }
+
+  .box.head {
+    background: linear-gradient(135deg, #1a2d1f, #142318);
+    border: 1px solid rgba(63,185,80,0.25);
+  }
+  .box.head .title { color: #56d364; }
+
+  .box.output {
+    background: linear-gradient(135deg, #1c3a3a, #142a2a);
+    border: 1px solid rgba(57,211,197,0.25);
+  }
+  .box.output .title { color: #39d3c5; }
+
+  /* ===== Arrows between rows ===== */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .arrow-row svg { width: 100%; height: 30px; }
+
+  .arrow-down {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .arrow-down svg { display: block; }
+
+  /* ===== Timing Diagram ===== */
+  .timing-section {
+    margin-top: 40px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 30px 60px;
+  }
+  .timing-section h2 {
+    text-align: center;
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #58a6ff, #3fb950);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .timing-section .desc {
+    text-align: center;
+    font-size: .85rem;
+    color: #8b949e;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  .timing-chart {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .timing-chart table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    min-width: 800px;
+  }
+  .timing-chart th,
+  .timing-chart td {
+    padding: 0;
+    border: none;
+    height: 44px;
+    vertical-align: middle;
+  }
+  .timing-chart th {
+    text-align: right;
+    padding-right: 16px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #8b949e;
+    width: 190px;
+    white-space: nowrap;
+  }
+
+  .t-bar {
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .68rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.85);
+    white-space: nowrap;
+    position: relative;
+  }
+  .t-spacer { background: transparent; }
+
+  /* timing colours */
+  .t-vision    { background: linear-gradient(90deg, #6e40c9, #8957e5); }
+  .t-projector { background: linear-gradient(90deg, #9e6a03, #bb8009); }
+  .t-llm       { background: linear-gradient(90deg, #da3633, #f85149); }
+  .t-extract   { background: linear-gradient(90deg, #1f6feb, #388bfd); }
+  .t-edge      { background: linear-gradient(90deg, #238636, #3fb950); }
+  .t-idle      { background: repeating-linear-gradient(135deg, transparent, transparent 4px, rgba(255,255,255,0.03) 4px, rgba(255,255,255,0.03) 8px); border: 1px dashed rgba(255,255,255,0.1); }
+
+  /* Axis */
+  .time-axis {
+    display: flex;
+    margin-top: 2px;
+    margin-left: 190px;
+    font-size: .68rem;
+    color: #484f58;
+    position: relative;
+  }
+  .time-axis span {
+    flex: 1;
+    text-align: left;
+    padding-left: 2px;
+  }
+
+  /* ===== Async Highlight ===== */
+  .async-bridge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    padding: 6px 18px;
+    background: linear-gradient(90deg, rgba(56,139,253,0.12), rgba(63,185,80,0.12));
+    border: 1px dashed rgba(139,148,158,0.3);
+    border-radius: 8px;
+    gap: 10px;
+    width: fit-content;
+  }
+  .async-bridge .label {
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    color: #e3b341;
+  }
+  .async-bridge .note {
+    font-size: .7rem;
+    color: #8b949e;
+  }
+
+  /* ===== Data‑flow connector ===== */
+  .flow-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: .72rem;
+    color: #7d8590;
+  }
+  .flow-connector .line {
+    width: 60px;
+    height: 1px;
+    background: #30363d;
+  }
+
+  /* ===== Detail Section ===== */
+  .detail-section {
+    max-width: 1200px;
+    margin: 0 auto 50px;
+    padding: 0 30px;
+  }
+  .detail-section h2 {
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+    text-align: center;
+    background: linear-gradient(135deg, #bc8cff, #58a6ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .detail-card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .detail-card h3 {
+    font-size: .88rem;
+    margin-bottom: 6px;
+  }
+  .detail-card p {
+    font-size: .78rem;
+    color: #8b949e;
+    line-height: 1.5;
+  }
+  .detail-card code {
+    font-size: .72rem;
+    background: rgba(110,64,201,0.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #d2a8ff;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .stage-row { flex-direction: column; }
+    .header h1 { font-size: 1.5rem; }
+    .box { min-height: auto; }
+    .timing-chart th { width: 120px; font-size: .7rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================== HEADER ============================== -->
+<div class="header">
+  <h1>AsyncVLA &mdash; Asynchronous Execution Pipeline</h1>
+  <p>
+    AsyncVLA decouples the heavy VLM backbone (low-frequency) from a lightweight Edge Adapter (high-frequency).
+    The VLM produces compact action-token features offline, while the Edge Adapter fuses them with
+    real-time camera observations to generate action trajectories at the robot's control rate.
+  </p>
+</div>
+
+<!-- ============================== LEGEND ============================== -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#388bfd;"></div>Input</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#8957e5;"></div>Vision Encoder</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#bb8009;"></div>Projector</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#f85149;"></div>LLM Backbone</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#3fb950;"></div>Edge Adapter</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#39d3c5;"></div>Output</div>
+</div>
+
+<!-- ============================== PIPELINE ============================== -->
+<div class="canvas">
+<div class="pipeline">
+
+  <!-- ============== SLOW BRANCH ============== -->
+  <div class="freq-band slow">
+    <span class="freq-label slow">&#9201; Slow Branch &mdash; VLM Backbone (low freq, ~1-2 Hz)</span>
+
+    <!-- Row 1: Inputs -->
+    <div class="stage-row">
+      <div class="box input">
+        <div class="title">&#128247; Current Image</div>
+        <div class="subtitle">RGB egocentric camera (224&times;224)</div>
+        <div class="dim">pixel_values &nbsp;[B, 12, 224, 224]</div>
+      </div>
+      <div class="box input">
+        <div class="title">&#128247; Goal Image</div>
+        <div class="subtitle">RGB goal observation (224&times;224)</div>
+        <div class="dim">pixel_values_goal &nbsp;[B, 6, 224, 224]</div>
+      </div>
+      <div class="box input">
+        <div class="title">&#128172; Language Instruction</div>
+        <div class="subtitle">Task text, e.g. "move toward blue trash bin"</div>
+        <div class="dim">input_ids &nbsp;[B, seq_len]</div>
+      </div>
+      <div class="box input">
+        <div class="title">&#127919; Goal Pose</div>
+        <div class="subtitle">[x, y, cos&theta;, sin&theta;] relative pose</div>
+        <div class="dim">proprio &nbsp;[B, 4]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 2: Vision Backbone -->
+    <div class="stage-row">
+      <div class="box vision" style="flex:3;">
+        <div class="title">&#128065; Vision Backbone &mdash; SigLIP + DINOv2 (Fused)</div>
+        <div class="subtitle">
+          Dual ViT feature extraction. SigLIP provides semantic features; DINOv2 provides spatial features.
+          Both images (current + goal) processed; patches concatenated.
+        </div>
+        <div class="dim">patch_features &nbsp;[B, 256&times;num_images, embed_dim]</div>
+      </div>
+      <div class="box proj" style="flex:1;">
+        <div class="title">&#128260; Proprio Projector</div>
+        <div class="subtitle">MLP projects goal pose into LLM space</div>
+        <div class="dim">[B, 1, llm_dim]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 3: Projector -->
+    <div class="stage-row">
+      <div class="box proj">
+        <div class="title">&#128256; Multimodal Projector</div>
+        <div class="subtitle">
+          3-layer MLP (GELU) maps fused vision features into LLM embedding space.
+          Proprio token appended after vision patch tokens.
+        </div>
+        <div class="dim">projected_patches &nbsp;[B, num_patches+1, llm_dim(4096)]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 4: LLM -->
+    <div class="stage-row">
+      <div class="box llm">
+        <div class="title">&#129504; LLM Backbone &mdash; Llama-2 7B (w/ LoRA)</div>
+        <div class="subtitle">
+          Multimodal embeddings = [BOS] + vision_patches + proprio + language_tokens + action_tokens.
+          Full causal attention; outputs hidden states for every token position.
+          Action token embeddings zeroed before input (positions learned via attention).
+        </div>
+        <div class="dim">hidden_states[-1] &nbsp;[B, seq_len, 4096]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 5: Action Hidden States & Projection -->
+    <div class="stage-row">
+      <div class="box proj" style="flex:1;">
+        <div class="title">&#128270; Action Token Extraction</div>
+        <div class="subtitle">
+          Extract hidden states at action-token positions from LLM output
+          (NUM_ACTIONS_CHUNK &times; ACTION_DIM = 8 &times; 4 = 32 tokens).
+        </div>
+        <div class="dim">actions_hidden &nbsp;[B, 32, 4096]</div>
+      </div>
+      <div class="box proj" style="flex:1;">
+        <div class="title">&#128296; Action Token Projector (Proj_Actiontokens)</div>
+        <div class="subtitle">
+          MLPResNet with modality_id conditioning.
+          Compresses per-chunk hidden states &rarr; 1024-dim features &times; 8 waypoints.
+        </div>
+        <div class="dim">projected_actions &nbsp;[B, 8, 1024]</div>
+      </div>
+    </div>
+
+  </div><!-- /freq-band slow -->
+
+  <!-- ============== ASYNC BRIDGE ============== -->
+  <div class="async-bridge">
+    <span class="label">&#9889; ASYNCHRONOUS HANDOFF</span>
+    <span class="note">VLA features cached &amp; reused across multiple Edge Adapter cycles</span>
+  </div>
+
+  <!-- ============== FAST BRANCH ============== -->
+  <div class="freq-band fast">
+    <span class="freq-label fast">&#9889; Fast Branch &mdash; Edge Adapter (high freq, ~3 Hz+)</span>
+
+    <!-- Row 6: Edge Adapter Inputs -->
+    <div class="stage-row">
+      <div class="box input" style="flex:1;">
+        <div class="title">&#128247; Latest Camera Image</div>
+        <div class="subtitle">Real-time egocentric view, resized to 96&times;96</div>
+        <div class="dim">img_cur &nbsp;[B, 3, 96, 96]</div>
+      </div>
+      <div class="box input" style="flex:1;">
+        <div class="title">&#128247; Previous Camera Image</div>
+        <div class="subtitle">Prior frame for temporal context, 96&times;96</div>
+        <div class="dim">img_past &nbsp;[B, 3, 96, 96]</div>
+      </div>
+      <div class="box proj" style="flex:1.2;">
+        <div class="title">&#128229; VLA Features (cached)</div>
+        <div class="subtitle">Action-token features from slow branch</div>
+        <div class="dim">projected_actions &nbsp;[B, 8, 1024]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 7: Edge Adapter -->
+    <div class="stage-row">
+      <div class="box head">
+        <div class="title">&#9881; Edge Adapter (EfficientNet-B0 + Transformer Decoder)</div>
+        <div class="subtitle">
+          <strong>obs_encoder</strong>: EfficientNet-B0 (3ch) encodes current image &rarr; obs_encoding [512].
+          <strong>cat_encoder</strong>: EfficientNet-B0 (6ch) encodes concatenated current+past images &rarr; cat_encoding [512].
+          Token sequence = [VLA features(8) | obs_encoding(1) | cat_encoding(1)] &rarr;
+          Multi-head self-attention Transformer decoder (2 layers, 2 heads) &rarr;
+          MLP action predictor &rarr; delta actions [B, 8, 4].
+        </div>
+        <div class="dim">tokens &nbsp;[B, 10, 512] &rarr; predicted_dactions &nbsp;[B, 8, 4]</div>
+      </div>
+    </div>
+
+    <!-- Arrow -->
+    <div class="arrow-down">
+      <svg width="40" height="24"><path d="M20 0 L20 16 L12 16 L20 24 L28 16 L20 16" fill="#30363d"/></svg>
+    </div>
+
+    <!-- Row 8: Post-processing -->
+    <div class="stage-row">
+      <div class="box output" style="flex:1;">
+        <div class="title">&#128260; Delta-to-Pose Conversion</div>
+        <div class="subtitle">
+          Integrate local delta actions [dx, dy, cos&Delta;&theta;, sin&Delta;&theta;]
+          into global trajectory poses [x, y, cos&theta;, sin&theta;]
+        </div>
+        <div class="dim">predicted_actions &nbsp;[B, 8, 4]</div>
+      </div>
+      <div class="box output" style="flex:1;">
+        <div class="title">&#127919; PD Controller</div>
+        <div class="subtitle">
+          Select waypoint &rarr; compute (linear_vel, angular_vel).
+          Velocity clipping: max v=0.3 m/s, max &omega;=0.3 rad/s.
+        </div>
+        <div class="dim">(v, &omega;) &rarr; robot actuators</div>
+      </div>
+    </div>
+  </div><!-- /freq-band fast -->
+
+</div><!-- /pipeline -->
+</div><!-- /canvas -->
+
+<!-- ============================== TIMING DIAGRAM ============================== -->
+<div class="timing-section">
+  <h2>Asynchronous Timing Diagram</h2>
+  <p class="desc">
+    The VLM backbone runs a full forward pass at low frequency (~1-2 Hz).
+    The Edge Adapter reuses cached VLA features and runs at the robot's control rate (~3 Hz+),
+    incorporating the latest camera observations for reactive action prediction.
+  </p>
+
+  <div class="timing-chart">
+    <table>
+      <!-- Header row: time ticks -->
+      <tr>
+        <th></th>
+        <td colspan="12" style="position:relative; height:24px;">
+          <div style="display:flex; font-size:.65rem; color:#484f58; padding-left:2px;">
+            <span style="flex:1;">t=0</span>
+            <span style="flex:1;">t=1</span>
+            <span style="flex:1;">t=2</span>
+            <span style="flex:1;">t=3</span>
+            <span style="flex:1;">t=4</span>
+            <span style="flex:1;">t=5</span>
+            <span style="flex:1;">t=6</span>
+            <span style="flex:1;">t=7</span>
+            <span style="flex:1;">t=8</span>
+            <span style="flex:1;">t=9</span>
+            <span style="flex:1;">t=10</span>
+            <span style="flex:1;">t=11</span>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Vision Backbone -->
+      <tr>
+        <th>Vision Backbone</th>
+        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-vision">SigLIP+DINOv2</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- Projector -->
+      <tr>
+        <th>Projector + Proprio</th>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-projector">Proj</div></td>
+        <td colspan="4"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- LLM -->
+      <tr>
+        <th>LLM (Llama-2 7B)</th>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="3"><div class="t-bar t-llm">Causal LM Forward</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+      </tr>
+
+      <!-- Action Token Extraction -->
+      <tr>
+        <th>Token Extract + Proj</th>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
+        <td colspan="5"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar t-extract">Proj</div></td>
+      </tr>
+
+      <!-- Separator -->
+      <tr><td colspan="13" style="height:6px;"></td></tr>
+      <tr>
+        <td colspan="13" style="height:2px; position:relative;">
+          <div style="border-top:2px dashed rgba(227,179,65,0.35); width:100%; position:absolute; top:0;"></div>
+          <div style="text-align:center; font-size:.68rem; color:#e3b341; position:relative; top:-8px; font-weight:700;">
+            &#9889; Async Boundary &mdash; cached features
+          </div>
+        </td>
+      </tr>
+
+      <!-- Edge Adapter -->
+      <tr>
+        <th style="color:#3fb950;">Edge Adapter</th>
+        <td colspan="2"><div class="t-bar t-idle"></div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #1</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #2</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #3</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #4</div></td>
+        <td colspan="2"><div class="t-bar t-edge">EA #5</div></td>
+      </tr>
+
+      <!-- Robot Control -->
+      <tr>
+        <th style="color:#39d3c5;">Robot Control</th>
+        <td colspan="3"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+        <td colspan="1"><div class="t-bar t-idle"></div></td>
+        <td colspan="1"><div class="t-bar" style="background:linear-gradient(90deg,#1a6d6d,#39d3c5); font-size:.62rem;">v,&omega;</div></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============================== MODULE DETAILS ============================== -->
+<div class="detail-section">
+  <h2>Module Details</h2>
+  <div class="detail-grid">
+
+    <div class="detail-card">
+      <h3 style="color:#d2a8ff;">Vision Backbone</h3>
+      <p>
+        Fused dual-encoder: <code>SigLIP ViT</code> (semantic) + <code>DINOv2 ViT</code> (spatial).
+        Each image &rarr; 256 patches. Two images (current + goal) &rarr; 512 total patches.
+        Features concatenated along hidden dimension before projection.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#e3b341;">Multimodal Projector</h3>
+      <p>
+        3-layer MLP with GELU: <code>vision_dim &rarr; 4&times;vision_dim &rarr; llm_dim &rarr; llm_dim</code>.
+        Maps fused vision patch features into the LLM embedding space (4096-d).
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#e3b341;">Proprio Projector</h3>
+      <p>
+        2-layer MLP with GELU: <code>4 &rarr; 4096 &rarr; 4096</code>.
+        Encodes goal pose <code>[x, y, cos&theta;, sin&theta;]</code> as a single LLM-space token,
+        appended after vision patches.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#ff7b72;">LLM Backbone</h3>
+      <p>
+        <code>Llama-2 7B</code> with LoRA (rank 32&ndash;128).
+        Input: <code>[BOS, vision_patches(512), proprio(1), text_tokens, action_tokens(32)]</code>.
+        Action token embeddings zeroed; positions filled by the causal transformer.
+        Last-layer hidden states extracted at action positions.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#e3b341;">Action Token Projector</h3>
+      <p>
+        <code>Proj_Actiontokens</code>: MLPResNet (2 blocks) with modality ID concatenation.
+        Input: reshaped action hidden states <code>[B, 8, 4096&times;4]</code>.
+        Output: compact action features <code>[B, 8, 1024]</code> for the Edge Adapter.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#56d364;">Edge Adapter</h3>
+      <p>
+        Lightweight module (~5M params). Two <code>EfficientNet-B0</code> encoders:
+        obs_encoder (3ch &rarr; 512-d) and cat_encoder (6ch &rarr; 512-d).
+        Token sequence [vla_feat(8) | obs(1) | cat(1)] &rarr;
+        2-layer Transformer decoder &rarr; MLP &rarr; delta actions <code>[B, 8, 4]</code>.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#39d3c5;">Delta-to-Pose</h3>
+      <p>
+        Integrates local delta predictions <code>[dx, dy, cos&Delta;&theta;, sin&Delta;&theta;]</code>
+        into a global trajectory. Uses differentiable rotation transforms
+        to accumulate pose: <code>x += cos(&theta;)dx - sin(&theta;)dy</code>.
+      </p>
+    </div>
+
+    <div class="detail-card">
+      <h3 style="color:#39d3c5;">9 Modality Modes</h3>
+      <p>
+        AsyncVLA supports 9 goal-conditioning modes via <code>modality_id</code>:
+        satellite-only, pose+satellite, satellite+image, all, pose-only,
+        pose+image, image-only, language-only, language+pose.
+        The modality ID is injected into Action Token Projector via concatenation.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================== FOOTER ============================== -->
+<div style="text-align:center; padding:20px 0 40px; font-size:.72rem; color:#484f58;">
+  AsyncVLA Async Pipeline Diagram &mdash; Generated from codebase analysis
+</div>
+
+</body>
+</html>
